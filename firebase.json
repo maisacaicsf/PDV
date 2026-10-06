@@ -1,0 +1,14 @@
+{
+  "functions": {
+    "source": "functions"
+  },
+  "hosting": {
+    "public": ".",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**", "functions/**"],
+    "rewrites": [
+      { "source": "/api/operator-login", "function": { "functionId": "operatorLogin", "region": "us-central1" } },
+      { "source": "/api/products", "function": { "functionId": "products", "region": "us-central1" } },
+      { "source": "/api/sale", "function": { "functionId": "sale", "region": "us-central1" } }
+    ]
+  }
+}
