@@ -1,0 +1,81 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+        && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.ativo == true;
+    }
+
+    function isAnonymous() {
+      return request.auth != null
+        && request.auth.token.firebase.sign_in_provider == 'anonymous';
+    }
+
+    match /admins/{adminId} {
+      allow read: if request.auth != null && request.auth.uid == adminId;
+      allow write: if false;
+    }
+
+    match /acessos/{acessoId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    match /lojas/{lojaId} {
+      allow read, write: if request.auth != null && !isAnonymous();
+
+      match /operadores/{operadorId} {
+        allow read: if isAnonymous();
+        allow read, write: if request.auth != null && !isAnonymous();
+      }
+
+      match /produtos/{produtoId} {
+        allow read: if isAnonymous();
+        allow read, write: if request.auth != null && !isAnonymous();
+
+        // O Gestok usa o campo "quantidade" como estoque atual.
+        allow update: if isAnonymous()
+          && request.resource.data.quantidade <= resource.data.quantidade
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'quantidade',
+            'dataAtualizacao'
+          ]);
+      }
+
+      match /vendas/{vendaId} {
+        allow create: if isAnonymous()
+          && request.resource.data.lojaId == lojaId;
+        allow read, write: if request.auth != null && !isAnonymous();
+      }
+
+      match /movimentacoes/{movimentoId} {
+        allow read, write: if request.auth != null && !isAnonymous();
+      }
+
+      match /chamados/{id} {
+        allow read, write: if request.auth != null && !isAnonymous();
+      }
+
+      match /solicitacoes/{id} {
+        allow read, write: if request.auth != null && !isAnonymous();
+      }
+
+      match /{documento=**} {
+        allow read, write: if request.auth != null && !isAnonymous();
+      }
+    }
+
+    match /notificacoes/{notificacaoId} {
+      allow read: if isAdmin();
+      allow read: if request.auth != null && resource.data.ativa == true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /{documento=**} {
+      allow read, write: if false;
+    }
+  }
+}
