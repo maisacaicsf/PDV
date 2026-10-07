@@ -26,3 +26,7 @@ O PDV é um projeto separado, mas usa o mesmo Firebase do Gestok: gestok-3bce2.
 
 IMPORTANTE DE SEGURANÇA
 Esta solução é uma versão simples/protótipo: a conferência da senha ocorre no cliente após ler o hash/salt do operador. Para produção/SaaS em escala, o ideal é voltar para uma autenticação server-side (Cloud Functions/Cloud Run) ou Firebase Authentication com conta própria por operador. Não use esta regra como modelo definitivo para um sistema fiscal ou de alta criticidade.
+
+
+CORREÇÃO IMPORTANTE
+O PDV agora preserva uma autenticação não-anônima já existente do Gestok no mesmo domínio/origem. Ele só usa autenticação anônima quando não há usuário autenticado. Isso evita que abrir o PDV deslogue/substitua a sessão do Gestok.

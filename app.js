@@ -19,6 +19,15 @@ async function hashSenha(senha, salt) {
   throw new Error('SECURE_HASH_UNAVAILABLE');
 }
 
+async function garantirAuthPDV(){
+  // Se o Gestok já está autenticado neste mesmo domínio/origem,
+  // NÃO substitui o usuário por um login anônimo.
+  if(auth.currentUser && auth.currentUser.isAnonymous === false){
+    return auth.currentUser;
+  }
+  return await auth.signInAnonymously();
+}
+
 async function login(e){
   e.preventDefault();
   $('loginError').textContent='';
@@ -28,7 +37,7 @@ async function login(e){
   if(codigo.length!==4){$('loginError').textContent='Informe o código de 4 dígitos.';return}
   if(!lojaId){$('loginError').textContent='Configure o lojaId deste terminal.';return}
   try{
-    await auth.signInAnonymously();
+    await garantirAuthPDV();
     const ref=db.collection('lojas').doc(lojaId).collection('operadores').doc(codigo);
     const snap=await ref.get();
     if(!snap.exists){$('loginError').textContent='Operador não encontrado nesta loja.';return}
@@ -49,4 +58,4 @@ async function login(e){
 async function start(){if(!state.session)return;$('loginView').classList.add('hidden');$('pdvView').classList.remove('hidden');$('operatorName').textContent=state.session.nome;$('lojaLabel').textContent=`Loja ${state.session.lojaId}`;try{const snap=await db.collection('lojas').doc(state.session.lojaId).collection('produtos').orderBy('nome').get();state.produtos=snap.docs.map(d=>({id:d.id,...d.data()}));render()}catch(e){console.error(e);toast('Não foi possível carregar os produtos. Verifique as regras do Firebase.')}}
 async function finish(){if(!state.cart.length)return;const loja=state.session.lojaId;const saleRef=db.collection('lojas').doc(loja).collection('vendas').doc();const payload={lojaId:loja,operadorId:state.session.operadorId,operadorNome:state.session.nome,formaPagamento:state.payment,valorTotal:total(),valorRecebido:Number(($('received').value||'0').replace(',','.')),criadoEm:firebase.firestore.FieldValue.serverTimestamp(),itens:state.cart.map(i=>({produtoId:i.id,nome:i.nome,quantidade:i.qtd,preco:i.preco,total:i.preco*i.qtd}))};$('finishBtn').disabled=true;try{await db.runTransaction(async tx=>{for(const i of state.cart){const ref=db.collection('lojas').doc(loja).collection('produtos').doc(i.id);const snap=await tx.get(ref);if(!snap.exists)throw new Error('produto');const p=snap.data(),novo=Number(p.estoque||0)-i.qtd;if(novo<0)throw new Error(`estoque:${i.nome}`);tx.update(ref,{estoque:novo,atualizadoEm:firebase.firestore.FieldValue.serverTimestamp()})}tx.set(saleRef,payload)});toast('Venda finalizada com sucesso!');state.cart=[];$('received').value='';await start()}catch(e){console.error(e);toast(e.message?.startsWith('estoque:')?`Estoque insuficiente: ${e.message.slice(8)}`:'Não foi possível finalizar a venda.');render()}}
 $('loginForm').addEventListener('submit',login);$('codigo').addEventListener('input',e=>e.target.value=e.target.value.replace(/\D/g,'').slice(0,4));$('search').addEventListener('input',e=>results(e.target.value));$('search').addEventListener('keydown',e=>{if(e.key==='Enter'){const p=state.produtos.find(x=>String(x.codigo||x.sku||'')===e.target.value.trim());if(p){add(p);e.target.value='';results('')}}});$('searchResults').addEventListener('click',e=>{const r=e.target.closest('.result[data-id]');if(!r)return;const p=state.produtos.find(x=>x.id===r.dataset.id);if(p)add(p);$('search').value='';$('searchResults').classList.add('hidden');$('search').focus()});$('cart').addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const idx=Number(b.dataset.i),i=state.cart[idx];if(!i)return;if(b.dataset.act==='plus'){if(i.qtd>=i.estoque){toast('Estoque insuficiente.');return}i.qtd++}else if(b.dataset.act==='minus'){i.qtd--;if(i.qtd<=0)state.cart.splice(idx,1)}else state.cart.splice(idx,1);render()});document.querySelectorAll('.pay').forEach(b=>b.onclick=()=>{document.querySelectorAll('.pay').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.payment=b.dataset.pay;$('receivedWrap').style.visibility=state.payment==='dinheiro'?'visible':'hidden';render()});$('received').addEventListener('input',render);$('finishBtn').onclick=finish;$('clearSale').onclick=()=>{state.cart=[];render()};$('logoutBtn').onclick=async()=>{sessionStorage.removeItem('gestok_pdv_session');location.reload()};document.addEventListener('keydown',e=>{if(e.key==='F2'){e.preventDefault();$('search').focus()}if(e.key==='Escape')$('searchResults').classList.add('hidden')});
-try{const s=JSON.parse(sessionStorage.getItem('gestok_pdv_session')||'null');if(s?.operadorId){state.session=s;state.lojaId=s.lojaId;auth.signInAnonymously().then(()=>start()).catch(()=>sessionStorage.removeItem('gestok_pdv_session'))}}catch{}
+try{const s=JSON.parse(sessionStorage.getItem('gestok_pdv_session')||'null');if(s?.operadorId){state.session=s;state.lojaId=s.lojaId;garantirAuthPDV().then(()=>start()).catch(()=>sessionStorage.removeItem('gestok_pdv_session'))}}catch{}
