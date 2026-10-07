@@ -1,17 +1,20 @@
-GESTOK PDV - PROJETO INDEPENDENTE
+GESTOK PDV - VERSAO SEM CLOUD FUNCTIONS
 
-Este projeto é separado do código raiz do Gestok administrativo.
-Ele usa o mesmo projeto Firebase, mas tem seu próprio código.
+O PDV e um projeto separado, mas usa o mesmo Firebase gestok-3bce2.
 
-IMPORTANTE PARA TESTE LOCAL:
-1. As Functions precisam estar publicadas no projeto Firebase.
-2. O terminal precisa saber qual loja atende. Você pode:
-   - preencher LOJA_ID no config.js; ou
-   - abrir index.html?lojaId=SEU_ID_DA_LOJA; ou
-   - deixar o Gestok administrativo gravar gestok_conta no mesmo localStorage/origem quando aplicável.
+IMPORTANTE - PRIMEIRA CONFIGURACAO
+1) No Gestok administrativo, substitua operadores/script.js pelo arquivo em PATCH-GESTOK/operadores/script.js.
+2) Substitua firebase/firestore.rules pelo arquivo em PATCH-GESTOK/firebase/firestore.rules.
+3) Publique SOMENTE as regras do Firestore pelo Firebase CLI (nao precisa Blaze):
+   firebase deploy --only firestore:rules
+4) No Firebase Console, verifique se Authentication > Sign-in method > Email/Password esta ATIVADO.
+5) Crie um operador NOVO no Gestok. Operadores antigos que foram criados pela versao anterior nao possuem conta de autenticacao e precisam ser recriados.
+6) Configure o ID da loja no config.js (LOJA_ID) ou abra o PDV como index.html?lojaId=ID_DA_LOJA.
+7) Abra o index.html do PDV por um servidor local ou hospedagem. Ex.: VS Code Live Server.
 
-PARA PUBLICAR:
-- firebase login
-- firebase deploy --only functions
+NAO e necessario Cloud Functions para esta versao.
+NAO e necessario outro Firebase.
+NAO e necessario colocar o PDV dentro do projeto raiz.
 
-Se o PDV for publicado no Firebase Hosting, também pode ser usado com as rotas /api configuradas no firebase.json.
+Fluxo:
+Gestok cria operador -> Firebase Authentication cria conta tecnica -> Firestore guarda vinculo -> PDV faz login direto no Firebase -> carrega produtos -> registra venda -> baixa estoque.

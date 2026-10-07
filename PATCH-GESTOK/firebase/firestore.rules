@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isOwner(lojaId) {
+      return request.auth != null && get(/databases/$(database)/documents/lojas/$(lojaId)).data.donoUid == request.auth.uid;
+    }
+    function isOperator(lojaId) {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/acessos_uid/$(request.auth.uid))
+        && get(/databases/$(database)/documents/acessos_uid/$(request.auth.uid)).data.lojaId == lojaId
+        && get(/databases/$(database)/documents/acessos_uid/$(request.auth.uid)).data.role == 'operador';
+    }
+    match /acessos/{chave} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      allow update: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow delete: if false;
+    }
+    match /acessos_uid/{uid} {
+      allow read: if request.auth != null && (request.auth.uid == uid || isOwner(resource.data.lojaId));
+      allow create: if request.auth != null && request.resource.data.role == 'operador' && isOwner(request.resource.data.lojaId);
+      allow update: if request.auth != null && isOwner(resource.data.lojaId);
+      allow delete: if false;
+    }
+    match /lojas/{lojaId} {
+      allow create: if request.auth != null && request.resource.data.donoUid == request.auth.uid;
+      allow read, update: if isOwner(lojaId);
+      allow delete: if false;
+      match /usuarios/{uid} {
+        allow create: if request.auth != null && uid == request.auth.uid && isOwner(lojaId);
+        allow read, update: if request.auth != null && uid == request.auth.uid && isOwner(lojaId);
+        allow delete: if false;
+      }
+      match /operadores/{operadorId} {
+        allow read: if isOwner(lojaId) || (isOperator(lojaId) && resource.data.uid == request.auth.uid);
+        allow create, update, delete: if isOwner(lojaId);
+      }
+      match /produtos/{produtoId} {
+        allow read: if isOwner(lojaId) || isOperator(lojaId);
+        allow update: if isOwner(lojaId) || (isOperator(lojaId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estoque','atualizadoEm']) && request.resource.data.estoque <= resource.data.estoque);
+        allow create, delete: if isOwner(lojaId);
+      }
+      match /vendas/{vendaId} {
+        allow create: if isOwner(lojaId) || (isOperator(lojaId) && request.resource.data.operadorId == get(/databases/$(database)/documents/acessos_uid/$(request.auth.uid)).data.codigo);
+        allow read: if isOwner(lojaId) || (isOperator(lojaId) && resource.data.operadorId == get(/databases/$(database)/documents/acessos_uid/$(request.auth.uid)).data.codigo);
+        allow update, delete: if isOwner(lojaId);
+      }
+      match /movimentacoes/{movimentoId} { allow read, write: if isOwner(lojaId); }
+      match /chamados/{id} { allow read, write: if isOwner(lojaId); }
+      match /solicitacoes/{id} { allow read, write: if isOwner(lojaId); }
+    }
+  }
+}

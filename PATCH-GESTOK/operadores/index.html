@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Operadores | Gestok</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="gestok-sidebar-container"></div>
+
+<header class="header">
+  <div class="header-left">
+    <button class="menu-button" id="menuButton" type="button" aria-label="Abrir menu">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="page-name">Operadores</div>
+  </div>
+</header>
+
+<main class="page">
+  <header class="topbar">
+    <div><span class="eyebrow">EQUIPE</span><h1>Operadores</h1><p>Cadastre quem poderá operar o caixa da sua loja.</p></div>
+    <button id="btnNovoOperador" class="primary">+ Novo operador</button>
+  </header>
+  <section class="info-card">
+    <div class="info-icon">⌕</div>
+    <div><strong>Como funciona?</strong><span>Você informa apenas o nome e a senha. O Gestok gera automaticamente um código exclusivo de 4 dígitos para o operador usar no PDV.</span></div>
+  </section>
+  <section class="panel">
+    <div class="panel-head"><div><h2>Operadores da loja</h2><span id="contador">0 operadores</span></div><span class="secure">🔒 Acesso do proprietário</span></div>
+    <div id="lista" class="list"></div>
+    <div id="vazio" class="empty"><div>♙</div><strong>Nenhum operador cadastrado</strong><span>Crie o primeiro operador para começar a usar o PDV.</span><button id="btnVazio" class="secondary">Cadastrar operador</button></div>
+  </section>
+</main>
+<div id="modal" class="modal" hidden>
+  <div class="modal-box">
+    <button class="close" id="fechar">×</button>
+    <span class="eyebrow">NOVO OPERADOR</span><h2>Cadastrar operador</h2><p>O código de 4 dígitos será criado automaticamente.</p>
+    <form id="form">
+      <label>Nome do operador<input id="nome" maxlength="80" autocomplete="off" required placeholder="Ex.: João Silva"></label>
+      <label>Senha do operador<input id="senha" type="password" minlength="6" maxlength="64" autocomplete="new-password" required placeholder="Mínimo de 6 caracteres"></label>
+      <label>Confirmar senha<input id="confirmar" type="password" minlength="6" maxlength="64" autocomplete="new-password" required placeholder="Repita a senha"></label>
+      <div id="erro" class="error"></div>
+      <button class="primary full" id="salvar" type="submit">Criar operador</button>
+    </form>
+  </div>
+</div>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="../firebase/config.js"></script>
+<script>if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);</script>
+<script src="../firebase/auth.js"></script>
+<script src="../firebase/firestore.js"></script>
+<script src="../auth.js"></script>
+<script src="../componentes/sidebar.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
