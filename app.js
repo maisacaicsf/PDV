@@ -1,6 +1,11 @@
 import {firebaseConfig,LOJA_ID} from './config.js';
-if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-const auth=firebase.auth(),db=firebase.firestore();
+
+// IMPORTANTE: o PDV usa uma instância Firebase SEPARADA da autenticação
+// principal do Gestok. Assim o login anônimo do PDV nunca substitui
+// o usuário/e-mail que está logado no Gestok, mesmo usando o mesmo projeto.
+const pdvApp = firebase.apps.find(app => app.name === 'GestokPDV') || firebase.initializeApp(firebaseConfig, 'GestokPDV');
+const auth = pdvApp.auth();
+const db = pdvApp.firestore();
 const state={session:null,produtos:[],cart:[],payment:'dinheiro',lojaId:''};
 const $=id=>document.getElementById(id);const money=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 function getLojaId(){if(LOJA_ID)return LOJA_ID;const p=new URLSearchParams(location.search);return p.get('lojaId')||localStorage.getItem('gestok_pdv_loja_id')||''}
@@ -20,12 +25,11 @@ async function hashSenha(senha, salt) {
 }
 
 async function garantirAuthPDV(){
-  // Se o Gestok já está autenticado neste mesmo domínio/origem,
-  // NÃO substitui o usuário por um login anônimo.
-  if(auth.currentUser && auth.currentUser.isAnonymous === false){
-    return auth.currentUser;
-  }
-  return await auth.signInAnonymously();
+  // Esta autenticação pertence SOMENTE ao app nomeado GestokPDV.
+  // Ela não altera o Firebase Auth principal usado pelo Gestok.
+  if(auth.currentUser) return auth.currentUser;
+  const resultado = await auth.signInAnonymously();
+  return resultado.user;
 }
 
 async function login(e){
