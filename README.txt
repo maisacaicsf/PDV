@@ -1,20 +1,28 @@
-GESTOK PDV - VERSAO SEM CLOUD FUNCTIONS
+GESTOK PDV - LOGIN POR TABELA DE OPERADORES
 
-O PDV e um projeto separado, mas usa o mesmo Firebase gestok-3bce2.
+Esta versão NÃO usa Cloud Functions e NÃO precisa do plano Blaze para as Functions.
+O PDV é um projeto separado, mas usa o mesmo Firebase do Gestok: gestok-3bce2.
 
-IMPORTANTE - PRIMEIRA CONFIGURACAO
-1) No Gestok administrativo, substitua operadores/script.js pelo arquivo em PATCH-GESTOK/operadores/script.js.
-2) Substitua firebase/firestore.rules pelo arquivo em PATCH-GESTOK/firebase/firestore.rules.
-3) Publique SOMENTE as regras do Firestore pelo Firebase CLI (nao precisa Blaze):
-   firebase deploy --only firestore:rules
-4) No Firebase Console, verifique se Authentication > Sign-in method > Email/Password esta ATIVADO.
-5) Crie um operador NOVO no Gestok. Operadores antigos que foram criados pela versao anterior nao possuem conta de autenticacao e precisam ser recriados.
-6) Configure o ID da loja no config.js (LOJA_ID) ou abra o PDV como index.html?lojaId=ID_DA_LOJA.
-7) Abra o index.html do PDV por um servidor local ou hospedagem. Ex.: VS Code Live Server.
+1) NO FIREBASE
+- Authentication > Sign-in method > ative Anonymous (Anônimo).
+- Firestore > Rules: publique o arquivo PATCH-GESTOK/firebase/firestore.rules.
+  Pela CLI, dentro da raiz do Gestok: firebase deploy --only firestore:rules
 
-NAO e necessario Cloud Functions para esta versao.
-NAO e necessario outro Firebase.
-NAO e necessario colocar o PDV dentro do projeto raiz.
+2) NO GESTOK
+- Substitua o arquivo da tela de operadores pelo PATCH-GESTOK/operadores/script.js.
+- O cadastro passa a gravar: codigo, nome, senhaHash, senhaSalt e ativo.
+- Os operadores antigos precisam ser recriados, pois não possuem senhaHash/senhaSalt.
 
-Fluxo:
-Gestok cria operador -> Firebase Authentication cria conta tecnica -> Firestore guarda vinculo -> PDV faz login direto no Firebase -> carrega produtos -> registra venda -> baixa estoque.
+3) NO PDV
+- Abra config.js e preencha LOJA_ID com o ID da loja do Gestok.
+- Exemplo: export const LOJA_ID="abc123";
+- O PDV consulta diretamente lojas/LOJA_ID/operadores/CODIGO.
+
+4) TESTE
+- Crie um NOVO operador no Gestok.
+- Anote o código de 4 dígitos.
+- Abra o PDV e informe código + senha.
+- O nome do operador aparecerá no caixa.
+
+IMPORTANTE DE SEGURANÇA
+Esta solução é uma versão simples/protótipo: a conferência da senha ocorre no cliente após ler o hash/salt do operador. Para produção/SaaS em escala, o ideal é voltar para uma autenticação server-side (Cloud Functions/Cloud Run) ou Firebase Authentication com conta própria por operador. Não use esta regra como modelo definitivo para um sistema fiscal ou de alta criticidade.
