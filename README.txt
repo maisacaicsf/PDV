@@ -1,11 +1,7 @@
-GESTOK PDV - v4
+GESTOK PDV - VERSÃO 5
 
-CORREÇÃO:
-O Gestok não usa o campo "estoque" nos produtos. O campo correto é "quantidade".
-O PDV foi ajustado para mostrar, validar e baixar estoque usando "quantidade".
+Correção: ao finalizar a venda, o PDV agora lê o estoque atual do campo quantidade (padrão do Gestok), com compatibilidade de leitura para o campo estoque caso algum produto antigo ainda o utilize. A baixa é gravada no campo quantidade.
 
-Também foi ajustada a regra do Firestore para permitir ao PDV anônimo diminuir "quantidade" e atualizar "dataAtualizacao".
+Projeto separado do Gestok, usando o mesmo projeto Firebase. Confira config.js e o LOJA_ID antes de usar.
 
-Configuração:
-- config.js: defina LOJA_ID com o ID da loja.
-- Firebase Authentication: Anonymous deve estar habilitado.
+Atenção: as regras Firestore devem permitir ao usuário anônimo do PDV ler operadores e produtos, atualizar apenas quantidade/dataAtualizacao nos produtos e criar vendas.
