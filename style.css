@@ -7,3 +7,49 @@
 @media(max-width:900px){.checkout{grid-template-columns:1fr}.pay-panel{border-left:0;border-top:1px solid var(--line)}.search-results{width:calc(100% - 52px)}.top-info{gap:12px}.cart-row{grid-template-columns:60px 1fr 90px 70px 30px}.topbar{padding:0 15px}}
 
 @media(max-height:650px){.view#loginView{align-items:flex-start;padding-top:20px;padding-bottom:20px;overflow:auto}.login-card{padding:28px}}
+
+/* =========================================================
+   MELHORIAS DE VISUAL E USO
+========================================================= */
+.sale-panel{position:relative}
+.search-results{left:26px;right:26px;width:auto}
+.search-box:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px #1261a812}
+.cart-row{grid-template-columns:112px 1fr 120px 110px 42px;transition:background .12s}
+.cart-row:hover{background:#fafcfe}
+.qty button{transition:background .15s,border-color .15s}
+.qty button:hover{background:#edf5fc;border-color:var(--blue)}
+.qty .qty-val{width:auto;min-width:34px;padding:0 4px;border:0;background:transparent;font-weight:800;color:var(--text)}
+.qty .qty-val:hover{background:#edf5fc}
+.remove:hover{color:var(--danger)}
+.result.sem-estoque{opacity:.55}
+.esgotado{color:var(--danger);font-weight:700}
+.ghost:hover{background:#f6f9fb}
+.pay{transition:border-color .15s,background .15s}
+.pay:hover{border-color:#b7c9db}
+.finish{transition:background .15s,transform .1s}
+.finish:not(:disabled):hover{background:#139348}
+.finish:not(:disabled):active{transform:translateY(1px)}
+.finish.loading{opacity:.7;cursor:wait}
+.login-note{margin:14px 0 0;text-align:center;color:var(--muted);font-size:12px}
+.btn:disabled{opacity:.6;cursor:wait}
+
+.modal-bg{position:fixed;inset:0;background:#0f172366;display:flex;align-items:center;justify-content:center;padding:20px;z-index:50}
+.done-card{width:min(400px,100%);background:#fff;border-radius:18px;padding:32px;text-align:center;box-shadow:0 30px 80px #0f172340}
+.done-icon{width:62px;height:62px;border-radius:50%;background:#e8f7ee;color:var(--green);font-size:34px;font-weight:800;display:grid;place-items:center;margin:0 auto 14px}
+.done-card h2{margin:0 0 4px;font-size:22px}
+.done-card .muted{margin:0 0 20px}
+.done-row{display:flex;justify-content:space-between;padding:12px 14px;background:#f5f7f9;border-radius:9px;margin-bottom:8px}
+.done-row b.ok{color:var(--green)}
+.done-actions{display:flex;gap:10px;margin-top:20px}
+.done-actions .btn{flex:1}
+
+#receipt{display:none}
+@media print{
+  body>*:not(#receipt){display:none!important}
+  #receipt{display:block!important;width:72mm;margin:0 auto;padding:4mm;font:12px/1.45 "Courier New",monospace;color:#000;background:#fff}
+  #receipt hr{border:0;border-top:1px dashed #000;margin:6px 0}
+  .r-item{display:flex;justify-content:space-between;gap:8px}
+  .r-center{text-align:center}
+  .r-total{font-weight:700;font-size:14px}
+}
+@media(max-width:900px){.search-results{left:15px;right:15px}.cart-row{grid-template-columns:100px 1fr 80px 30px}.cart-row>div:nth-child(3){display:none}}
